@@ -197,7 +197,7 @@ func downloadNovel(link, userAgent string, index int) {
 	cleanedContent := cleanText(content)
 
 	outputDir := "./output"
-	outputFile := fmt.Sprintf("%s/%s.txt", outputDir, sanitizeFileName(title))
+	outputFile := filepath.Join(outputDir, sanitizeFileName(title) + ".txt")
 
 	err = saveNovelToFile(outputFile, cleanedContent)
 	if err != nil {
