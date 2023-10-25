@@ -16,6 +16,7 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/fatih/color"
+	"github.com/cheggaaa/pb/v3" // 이 패키지를 사용하여 진행 바를 구현합니다
 )
 
 func main() {
@@ -60,18 +61,26 @@ https://github.com/yeorinhieut/novel-dl
 		os.Mkdir("./output", os.ModePerm)
 	}
 
+	bar := pb.StartNew(len(links))
+	var mu sync.Mutex // Mutex 추가
+
 	for i, link := range links {
 		wg.Add(1)
 		go func(i int, link string) {
 			defer wg.Done()
 			semaphore <- struct{}{}
-			fmt.Printf("다운로드 중... %d/%d\n", i+1, len(links))
 			downloadNovel(link, userAgent, i)
 			<-semaphore
+		
+			mu.Lock()
+			bar.Increment()
+			mu.Unlock()
+			
 		}(i, link)
 	}
-
+	
 	wg.Wait()
+	bar.Finish()
 	mergeFilesPrompt()
 	fmt.Println(color.RedString("프로그램을 종료합니다."))
 }
@@ -166,10 +175,10 @@ func saveLinksToFile(links []string, filename string) error {
 }
 
 func downloadNovel(link, userAgent string, index int) {
-	delay := 200 + rand.Intn(1800)
+	delay := 1000
 	time.Sleep(time.Millisecond * time.Duration(delay))
 
-	html, err := fetchHTML(link, userAgent)
+	html, err := fetchHTML(link, use	rAgent)
 	if err != nil {
 		log.Printf("%d번째 링크에서 HTML을 가져오는 중 에러가 발생했습니다: %v\n", index, err)
 		return
@@ -193,7 +202,7 @@ func downloadNovel(link, userAgent string, index int) {
 	if err != nil {
 		log.Printf("%d번째 링크에서 파일을 저장하는 중 에러가 발생했습니다: %v\n", index, err)
 	} else {
-		log.Printf("%d번째 링크의 다운로드가 완료되었습니다.\n", index)
+
 	}
 }
 
