@@ -11,6 +11,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"sort"
+	"path/filepath"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/fatih/color"
@@ -37,20 +39,13 @@ https://github.com/yeorinhieut/novel-dl
 	}
 	numThreads := inputInt("다운로드할 스레드 수를 입력하세요 (일반적으로 1을 권장합니다): ")
 
-	// 사용자 에이전트 설정
 	userAgent := randomUserAgent()
-
-	// URL에서 HTML 가져오기
-	fmt.Println("페이지에서 HTML을 가져오는 중...")
 	html, err := fetchHTML(url, userAgent)
 	if err != nil {
 		log.Fatalf("HTML 가져오기 실패: %v\n", err)
 	}
 
-	// HTML을 파싱하여 링크 추출
 	links := extractLinks(html, lastChapter)
-
-	// 추출된 링크를 파일에 저장
 	err = saveLinksToFile(links, "links.txt")
 	if err != nil {
 		log.Fatalf("링크를 파일에 저장하는데 실패했습니다: %v\n", err)
@@ -58,11 +53,9 @@ https://github.com/yeorinhieut/novel-dl
 
 	fmt.Printf("%d개의 링크를 찾았습니다.\n", len(links))
 
-
 	var wg sync.WaitGroup
 	semaphore := make(chan struct{}, numThreads)
 
-	// output 폴더 생성
 	if _, err := os.Stat("./output"); os.IsNotExist(err) {
 		os.Mkdir("./output", os.ModePerm)
 	}
@@ -79,7 +72,8 @@ https://github.com/yeorinhieut/novel-dl
 	}
 
 	wg.Wait()
-	fmt.Println(color.GreenString("다운로드가 완료되었습니다."))
+	mergeFilesPrompt()
+	fmt.Println(color.RedString("프로그램을 종료합니다."))
 }
 
 func input(prompt string) string {
@@ -172,7 +166,6 @@ func saveLinksToFile(links []string, filename string) error {
 }
 
 func downloadNovel(link, userAgent string, index int) {
-	// 랜덤한 딜레이 생성 (200ms에서 2000ms 사이)
 	delay := 200 + rand.Intn(1800)
 	time.Sleep(time.Millisecond * time.Duration(delay))
 
@@ -235,3 +228,67 @@ func saveNovelToFile(filename, content string) error {
 
 	return nil
 }
+
+func mergeFilesPrompt() {
+    fmt.Println("다운로드가 완료되었습니다.")
+    mergeFiles := input("다운로드한 파일을 하나의 txt 파일로 병합하시겠습니까? (y/n): ")
+    if mergeFiles == "y" || mergeFiles == "Y" {
+        err := mergeOutputFiles()
+        if err != nil {
+            log.Fatalf("파일 병합 중 에러가 발생했습니다: %v\n", err)
+        } else {
+            fmt.Println(color.GreenString("파일 병합이 완료되었습니다."))
+        }
+    }
+}
+
+func mergeOutputFiles() error {
+    files, err := getOutputFiles()
+    if err != nil {
+        return err
+    }
+
+    sort.Strings(files)
+
+    outputFile := "./output/merged.txt"
+    outFile, err := os.Create(outputFile)
+    if err != nil {
+        return err
+    }
+    defer outFile.Close()
+
+    for _, file := range files {
+        content, err := os.ReadFile(file)
+        if err != nil {
+            return err
+        }
+
+        cleanedContent := cleanText(string(content))
+
+        _, err = outFile.WriteString(cleanedContent + "\n")
+        if err != nil {
+            return err
+        }
+    }
+
+    return nil
+}
+
+func getOutputFiles() ([]string, error) {
+    var files []string
+    dir := "./output"
+    fileInfos, err := os.ReadDir(dir)
+    if err != nil {
+        return nil, err
+    }
+
+    for _, fileInfo := range fileInfos {
+        if fileInfo.IsDir() {
+            continue
+        }
+        files = append(files, filepath.Join(dir, fileInfo.Name()))
+    }
+
+    return files, nil
+}
+
