@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"math/rand"
@@ -13,7 +12,9 @@ import (
 	"time"
 	"sort"
 	"path/filepath"
+	"strconv"
 
+	"github.com/charmbracelet/log"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/fatih/color"
 	"github.com/cheggaaa/pb/v3" // 이 패키지를 사용하여 진행 바를 구현합니다
@@ -175,10 +176,10 @@ func saveLinksToFile(links []string, filename string) error {
 }
 
 func downloadNovel(link, userAgent string, index int) {
-	delay := 1000
+	delay := 1250
 	time.Sleep(time.Millisecond * time.Duration(delay))
 
-	html, err := fetchHTML(link, use	rAgent)
+	html, err := fetchHTML(link, userAgent)
 	if err != nil {
 		log.Printf("%d번째 링크에서 HTML을 가져오는 중 에러가 발생했습니다: %v\n", index, err)
 		return
@@ -257,7 +258,12 @@ func mergeOutputFiles() error {
         return err
     }
 
-    sort.Strings(files)
+    // 파일 이름에서 숫자를 추출하여 정렬
+    sort.SliceStable(files, func(i, j int) bool {
+        num1 := extractNumber(files[i])
+        num2 := extractNumber(files[j])
+        return num1 < num2
+    })
 
     outputFile := "./output/merged.txt"
     outFile, err := os.Create(outputFile)
@@ -281,6 +287,19 @@ func mergeOutputFiles() error {
     }
 
     return nil
+}
+
+// 파일 이름에서 숫자를 추출하는 유틸리티 함수
+func extractNumber(s string) int {
+    re := regexp.MustCompile(`(\d+)`)
+    match := re.FindStringSubmatch(s)
+    if len(match) > 1 {
+        num, err := strconv.Atoi(match[1])
+        if err == nil {
+            return num
+        }
+    }
+    return 0
 }
 
 func getOutputFiles() ([]string, error) {
