@@ -197,7 +197,7 @@ func downloadNovel(link, userAgent string, index int) {
 	cleanedContent := cleanText(content)
 
 	outputDir := "./output"
-	outputFile := fmt.Sprintf("%s/%s.txt", outputDir, strings.ReplaceAll(title, " ", ""))
+	outputFile := fmt.Sprintf("%s/%s.txt", outputDir, sanitizeFileName(title))
 
 	err = saveNovelToFile(outputFile, cleanedContent)
 	if err != nil {
@@ -319,4 +319,15 @@ func getOutputFiles() ([]string, error) {
 
     return files, nil
 }
+
+func sanitizeFileName(filename string) string {
+    // 허용되지 않는 문자를 정규 표현식으로 검색하여 밑줄로 대체
+    invalidChars := regexp.MustCompile(`[\\/:*?"<>|]`)
+    sanitizedName := invalidChars.ReplaceAllString(filename, "_")
+
+    sanitizedName = strings.ReplaceAll(sanitizedName, " ", "")
+
+    return sanitizedName
+}
+
 
