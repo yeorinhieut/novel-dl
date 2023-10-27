@@ -17,7 +17,7 @@ import (
 	"github.com/charmbracelet/log"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/fatih/color"
-	"github.com/cheggaaa/pb/v3" // 이 패키지를 사용하여 진행 바를 구현합니다
+	"github.com/cheggaaa/pb/v3"
 )
 
 func main() {
@@ -58,12 +58,12 @@ https://github.com/yeorinhieut/novel-dl
 	var wg sync.WaitGroup
 	semaphore := make(chan struct{}, numThreads)
 
-	if _, err := os.Stat("output"); os.IsNotExist(err) {
-		os.Mkdir("output", os.ModePerm)
+	if _, err := os.Stat("./output"); os.IsNotExist(err) {
+		os.Mkdir("./output", os.ModePerm)
 	}
 
 	bar := pb.StartNew(len(links))
-	var mu sync.Mutex // Mutex 추가
+	var mu sync.Mutex
 
 	for i, link := range links {
 		wg.Add(1)
@@ -196,7 +196,7 @@ func downloadNovel(link, userAgent string, index int) {
 
 	cleanedContent := cleanText(content)
 
-	outputDir := "output"
+	outputDir := "./output"
 	outputFile := filepath.Join(outputDir, sanitizeFileName(title) + ".txt")
 
 	err = saveNovelToFile(outputFile, cleanedContent)
@@ -258,14 +258,13 @@ func mergeOutputFiles() error {
         return err
     }
 
-    // 파일 이름에서 숫자를 추출하여 정렬
     sort.SliceStable(files, func(i, j int) bool {
         num1 := extractNumber(files[i])
         num2 := extractNumber(files[j])
         return num1 < num2
     })
 
-    outputFile := "output/merged.txt"
+    outputFile := "./output/merged.txt"
     outFile, err := os.Create(outputFile)
     if err != nil {
         return err
@@ -289,7 +288,6 @@ func mergeOutputFiles() error {
     return nil
 }
 
-// 파일 이름에서 숫자를 추출하는 유틸리티 함수
 func extractNumber(s string) int {
     re := regexp.MustCompile(`(\d+)`)
     match := re.FindStringSubmatch(s)
@@ -304,7 +302,7 @@ func extractNumber(s string) int {
 
 func getOutputFiles() ([]string, error) {
     var files []string
-    dir := "output"
+    dir := "./output"
     fileInfos, err := os.ReadDir(dir)
     if err != nil {
         return nil, err
@@ -321,13 +319,10 @@ func getOutputFiles() ([]string, error) {
 }
 
 func sanitizeFileName(filename string) string {
-    // 허용되지 않는 문자를 정규 표현식으로 검색하여 밑줄로 대체
     invalidChars := regexp.MustCompile(`[\\/:*?"<>|]`)
     sanitizedName := invalidChars.ReplaceAllString(filename, "_")
-
+    sanitizedName = strings.TrimSpace(sanitizedName)
     sanitizedName = strings.ReplaceAll(sanitizedName, " ", "")
 
     return sanitizedName
 }
-
-
