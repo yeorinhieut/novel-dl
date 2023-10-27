@@ -58,8 +58,8 @@ https://github.com/yeorinhieut/novel-dl
 	var wg sync.WaitGroup
 	semaphore := make(chan struct{}, numThreads)
 
-	if _, err := os.Stat("./output"); os.IsNotExist(err) {
-		os.Mkdir("./output", os.ModePerm)
+	if _, err := os.Stat("output"); os.IsNotExist(err) {
+		os.Mkdir("output", os.ModePerm)
 	}
 
 	bar := pb.StartNew(len(links))
@@ -196,7 +196,7 @@ func downloadNovel(link, userAgent string, index int) {
 
 	cleanedContent := cleanText(content)
 
-	outputDir := "./output"
+	outputDir := "output"
 	outputFile := filepath.Join(outputDir, sanitizeFileName(title) + ".txt")
 
 	err = saveNovelToFile(outputFile, cleanedContent)
@@ -265,7 +265,7 @@ func mergeOutputFiles() error {
         return num1 < num2
     })
 
-    outputFile := "./output/merged.txt"
+    outputFile := "output/merged.txt"
     outFile, err := os.Create(outputFile)
     if err != nil {
         return err
@@ -304,7 +304,7 @@ func extractNumber(s string) int {
 
 func getOutputFiles() ([]string, error) {
     var files []string
-    dir := "./output"
+    dir := "output"
     fileInfos, err := os.ReadDir(dir)
     if err != nil {
         return nil, err
