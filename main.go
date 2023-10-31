@@ -13,6 +13,7 @@ import (
 	"sort"
 	"path/filepath"
 	"strconv"
+	"html"
 
 	"github.com/charmbracelet/log"
 	"github.com/PuerkitoBio/goquery"
@@ -207,23 +208,6 @@ func downloadNovel(link, userAgent string, index int) {
 	}
 }
 
-func cleanText(text string) string {
-	text = strings.ReplaceAll(text, "<div>", "")
-	text = strings.ReplaceAll(text, "</div>", "")
-	text = strings.ReplaceAll(text, "<p>", "\n")
-	text = strings.ReplaceAll(text, "</p>", "\n")
-
-	text = stripHTML(text)
-
-	text = strings.TrimSpace(text)
-	return text
-}
-
-func stripHTML(html string) string {
-	re := regexp.MustCompile("<[^>]*>")
-	return re.ReplaceAllString(html, "")
-}
-
 func saveNovelToFile(filename, content string) error {
 	file, err := os.Create(filename)
 	if err != nil {
@@ -326,3 +310,23 @@ func sanitizeFileName(filename string) string {
 
     return sanitizedName
 }
+
+func cleanText(text string) string {
+    text = html.UnescapeString(text)
+
+    text = strings.ReplaceAll(text, "<div>", "")
+    text = strings.ReplaceAll(text, "</div>", "")
+    text = strings.ReplaceAll(text, "<p>", "\n")
+    text = strings.ReplaceAll(text, "</p>", "\n")
+
+    text = stripHTML(text)
+
+    text = strings.TrimSpace(text)
+    return text
+}
+
+func stripHTML(html string) string {
+	re := regexp.MustCompile("<[^>]*>")
+	return re.ReplaceAllString(html, "")
+}
+
