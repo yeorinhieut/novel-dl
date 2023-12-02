@@ -21,6 +21,29 @@ import (
 	"github.com/cheggaaa/pb/v3"
 )
 
+package main
+
+import (
+	"fmt"
+	"io"
+	"net/http"
+	"os"
+	"math/rand"
+	"regexp"
+	"strings"
+	"sync"
+	"time"
+	"sort"
+	"path/filepath"
+	"strconv"
+	"html"
+
+	"github.com/charmbracelet/log"
+	"github.com/PuerkitoBio/goquery"
+	"github.com/fatih/color"
+	"github.com/cheggaaa/pb/v3"
+)
+
 func main() {
 	fmt.Println(`
                       _           _ _ 
@@ -33,7 +56,25 @@ novel-dl
 https://github.com/yeorinhieut/novel-dl
 `)
 
-	url := input("다운로드할 소설의 회차 목록 URL을 입력하세요: ")
+	var html string
+	if len(os.Args) == 3 && os.Args[1] == "--source" {
+		filePath := os.Args[2]
+		fileContent, err := os.ReadFile(filePath)
+		if err != nil {
+			log.Fatalf("HTML 파일 읽기 실패: %v\n", err)
+			return
+		}
+		html = string(fileContent)
+	} else {
+		url := input("다운로드할 소설의 회차 목록 URL을 입력하세요: ")
+		userAgent := randomUserAgent()
+		fetchedHTML, err := fetchHTML(url, userAgent)
+		if err != nil {
+			log.Fatalf("HTML 가져오기 실패: %v\n", err)
+		}
+		html = fetchedHTML
+	}
+
 	lastChapter := inputInt("소설의 마지막 회차 번호를 입력하세요: ")
 	startDownload := input("다운로드를 시작하시겠습니까? (y/n): ")
 	if startDownload != "y" && startDownload != "Y" {
