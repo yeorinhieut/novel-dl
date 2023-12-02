@@ -50,10 +50,10 @@ https://github.com/yeorinhieut/novel-dl
 
 원본 사이트의 captcha 제한에 걸려 "0개의 링크를 찾았습니다." 만 반복되는 경우가 있습니다.
 
-1. [북마크 코드](https://github.com/yeorinhieut/novel-dl/blob/main/gethtml.js) 를 북마크 내용(제목이 아닙니다) 에 추가하기
-2. 다운로드할 소설 목록 페이지에서 북마크 클릭하기
-3. 다운로드 된 html 파일의 경로 복사하기
-4. 프로그램 실행 시, --source {경로} 붙여서 실행하기
+1. [북마크 코드](https://github.com/yeorinhieut/novel-dl/blob/main/gethtml.js) 를 북마크 내용(제목 X) 에 추가하기
+2. 다운로드할 소설 목록 페이지에서 북마크 클릭
+3. 다운로드 된 html 파일의 경로 복사
+4. 프로그램 실행 시, --source {경로} 붙여서 실행
 
 위와 같은 방법으로 해결 가능합니다.
 
