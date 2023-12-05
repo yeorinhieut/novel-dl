@@ -21,29 +21,6 @@ import (
 	"github.com/cheggaaa/pb/v3"
 )
 
-package main
-
-import (
-	"fmt"
-	"io"
-	"net/http"
-	"os"
-	"math/rand"
-	"regexp"
-	"strings"
-	"sync"
-	"time"
-	"sort"
-	"path/filepath"
-	"strconv"
-	"html"
-
-	"github.com/charmbracelet/log"
-	"github.com/PuerkitoBio/goquery"
-	"github.com/fatih/color"
-	"github.com/cheggaaa/pb/v3"
-)
-
 func main() {
 	fmt.Println(`
                       _           _ _ 
@@ -56,23 +33,12 @@ novel-dl
 https://github.com/yeorinhieut/novel-dl
 `)
 
-	var html string
-	if len(os.Args) == 3 && os.Args[1] == "--source" {
-		filePath := os.Args[2]
-		fileContent, err := os.ReadFile(filePath)
-		if err != nil {
-			log.Fatalf("HTML 파일 읽기 실패: %v\n", err)
-			return
-		}
-		html = string(fileContent)
+	var url string
+	if _, err := os.Stat("./page.html"); err == nil {
+		fmt.Println("프로그램이 './page.html' 파일을 발견했습니다. 해당 파일을 사용합니다.")
+		url = "./page.html"
 	} else {
-		url := input("다운로드할 소설의 회차 목록 URL을 입력하세요: ")
-		userAgent := randomUserAgent()
-		fetchedHTML, err := fetchHTML(url, userAgent)
-		if err != nil {
-			log.Fatalf("HTML 가져오기 실패: %v\n", err)
-		}
-		html = fetchedHTML
+		url = input("다운로드할 소설의 회차 목록 URL을 입력하세요: ")
 	}
 
 	lastChapter := inputInt("소설의 마지막 회차 번호를 입력하세요: ")
@@ -158,34 +124,44 @@ func randomUserAgent() string {
 	return UAlist[rand.Intn(len(UAlist))]
 }
 
-func fetchHTML(url, userAgent string) (string, error) {
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		log.Fatalf("HTTP 요청 생성 중 에러가 발생했습니다: %v\n", err)
-		return "", err
-	}
-	req.Header.Set("User-Agent", userAgent)
+func fetchHTML(urlOrPath, userAgent string) (string, error) {
+	var body []byte
+	var err error
 
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		log.Fatalf("HTTP 요청 중 에러가 발생했습니다: %v\n", err)
-		return "", err
-	}
-	defer resp.Body.Close()
+	if strings.HasPrefix(urlOrPath, "http") {
+		// URL인 경우
+		req, err := http.NewRequest("GET", urlOrPath, nil)
+		if err != nil {
+			return "", fmt.Errorf("HTTP 요청 생성 중 에러가 발생했습니다: %v", err)
+		}
+		req.Header.Set("User-Agent", userAgent)
 
-	if resp.StatusCode != 200 {
-		return "", fmt.Errorf("HTTP 요청 실패. 응답 코드: %d", resp.StatusCode)
-	}
+		client := &http.Client{}
+		resp, err := client.Do(req)
+		if err != nil {
+			return "", fmt.Errorf("HTTP 요청 중 에러가 발생했습니다: %v", err)
+		}
+		defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		log.Fatalf("HTTP 처리 중 에러가 발생했습니다: %v\n", err)
-		return "", err
+		if resp.StatusCode != 200 {
+			return "", fmt.Errorf("HTTP 요청 실패. 응답 코드: %d", resp.StatusCode)
+		}
+
+		body, err = io.ReadAll(resp.Body)
+		if err != nil {
+			return "", fmt.Errorf("HTTP 처리 중 에러가 발생했습니다: %v", err)
+		}
+	} else {
+		// 파일 경로인 경우
+		body, err = os.ReadFile(urlOrPath)
+		if err != nil {
+			return "", fmt.Errorf("파일 읽기 실패: %v", err)
+		}
 	}
 
 	return string(body), nil
 }
+
 
 func extractLinks(html string, lastChapter int) []string {
 	links := []string{}
@@ -370,4 +346,3 @@ func stripHTML(html string) string {
 	re := regexp.MustCompile("<[^>]*>")
 	return re.ReplaceAllString(html, "")
 }
-
