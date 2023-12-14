@@ -335,7 +335,7 @@ func cleanText(text string) string {
     text = strings.ReplaceAll(text, "</div>", "")
     text = strings.ReplaceAll(text, "<p>", "\n")
     text = strings.ReplaceAll(text, "</p>", "\n")
-    text = strings.ReplaceAll(text, "<br>", "\n")
+    text = strings.ReplaceAll(text, "<br/>", "\n")
 
     text = stripHTML(text)
 
