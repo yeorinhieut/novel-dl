@@ -1,82 +1,39 @@
 
 # novel-dl
 
-novel downloader for 📖🐰 (currently public beta)
-
-
+novel downloader for  📖🐰  (currently public beta)
 
 ## Features
 
-- 📖🐰 소설 다운로드 (htdl 대비 빠른 속도)
-- 파일 병합 기능
-- 크로스 플랫폼 (윈도우, 리눅스, 맥 지원)
-- ~~병렬 다운로드 지원~~ (2개 이상 스레드 사용시 차단됨)
+-   📖🐰 소설 다운로드
+-   자동 파일 병합 기능
+-   브라우저 콘솔/북마크를 통한 빠른 실행
+-   프로그램 설치 불필요
 
+## Usage
 
-## Installation
+### Via Browser Console (일회성 사용)
+1. [script.js](https://raw.githubusercontent.com/yeorinhieut/novel-dl/main/script.js) 를 복사하기
+2. 다운로드 받을 소설의 회차 목록 페이지에서, f12 혹은 ctrl+shift+i 를 눌러 브라우저 콘솔 진입
+3. 콘솔에 복사한 스크립트 붙여넣기
 
-[Releases](https://github.com/yeorinhieut/novel-dl/releases) 에서 OS와 플랫폼에 맞는 실행파일을 제공합니다.
-
-
-### Building
-
-```bash
-  go build
-```
-    
-## Usage/Examples
-
-```bash
-./novel-dl
-```
-
-```bash
-                      _           _ _ 
- _ __   _____   _____| |       __| | |
-| '_ \ / _ \ \ / / _ \ |_____ / _\ ` | 
-| | | | (_) \ V /  __/ |_____| (_| | |
-|_| |_|\___/ \_/ \___|_|      \__,_|_|
-                                      
-novel-dl
-https://github.com/yeorinhieut/novel-dl
-
-다운로드할 소설의 회차 목록 URL을 입력하세요: https://example.com/novel/1234
-소설의 마지막 회차 번호를 입력하세요: 123
-다운로드를 시작하시겠습니까? (y/n): y
-다운로드할 스레드 수를 입력하세요 (일반적으로 1을 권장합니다): 1
-```
-
-## Manually importing html file
-
-원본 사이트의 captcha 제한에 걸려 "0개의 링크를 찾았습니다." 만 반복되는 경우
-
-1. 소설 목록에서 빈 공간에 커서를 두고 ctrl + s 눌러서 html 다운로드
-2. html 파일 이름을 page.html 로 변경
-3. 다운로드 된 html 파일을 프로그램 경로로 이동
-4. 프로그램 실행시, 자동으로 page.html 감지 및 실행됨
-
-위와 같은 방법으로 해결 가능합니다.
+### Via Bookmark (다회성 사용)
+1. [bookmark.js](https://raw.githubusercontent.com/yeorinhieut/novel-dl/main/bookmark.js) 를 복사하기
+2. 북마크 "url" 부분에 복사한 스크립트 붙여넣기 (제목 x)
+3. 다운로드 받을 소설의 회차 목록 페이지에서, 해당 북마크 클릭하기
 
 ## FAQ
 
-#### "0개의 링크를 찾았습니다." 만 반복됩니다.
+#### 한번에 여러 소설 다운로드가 가능한가요?
 
-원본 사이트에 정상적으로 접근되어야 다운로드가 가능합니다.  
-일부 소설에서 캡챠가 반환되어 정상적인 다운로드가 어려울 수 있습니다. 해당 이슈를 인지하였으며, 수정 중에 있습니다.  
+여러 탭에서, 한번에 여러 소설을 다운로드를 시도하면, 차단 정책으로 인해 사이트 접속이 불가할 수 있습니다. 권장되지 않습니다.
 
-#### "403" 오류를 반환합니다
+#### 오류가 발생했습니다.
 
-스레드를 2개 이상으로 설정하였을 경우 발생하는 이슈입니다.
-프록시 기능 지원을 통해 해결할 예정입니다.
+[issues](https://github.com/yeorinhieut/novel-dl/issues) 섹션에 해당 오류를 제보해 주세요.
 
-#### "Windows의 PC 보호" 로 프로그램 실행이 불가합니다
+#### 개선 사항을 요청하고 싶습니다.
 
-프로그램을 서명하지 않아서 발생한 문제입니다.
-실행파일 내 어떠한 바이러스도 존재하지 않으며, 직접 코드를 확인 후 빌드해서도 사용 가능합니다.
-"추가 정보" 를 누른 후 실행하세요.
+[issues](https://github.com/yeorinhieut/novel-dl/issues) 섹션에 해당 개선사항을 제시해 주세요.
 
-#### 다중 스레드 사용은 불가한가요?
-
-📖🐰 사이트는 현재 1분당 60회 이상의 요청을 보낸 경우 요청을 보낸 ip를 1시간 차단하고 있습니다.
-해당 이슈로 인해, 60개보다 많은 회차를 가진 소설을 다운로드하는 경우에는 1개의 스레드 사용이 강제됩니다.
 
