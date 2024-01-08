@@ -19,20 +19,64 @@ async function fetchNovelContent(url) {
     return cleanText(content.innerHTML);
 }
 
+function unescapeHTML(text) {
+    const entities = {
+        '&lt;': '<', '&gt;': '>', '&amp;': '&',
+        '&quot;': '"', '&apos;': "'", '&#039;': "'",
+        '&nbsp;': ' ', '&ndash;': '–', '&mdash;': '—',
+        '&lsquo;': '‘', '&rsquo;': '’', '&ldquo;': '“', '&rdquo;': '”'
+    };
+
+    Object.entries(entities).forEach(([entity, replacement]) => {
+        const regex = new RegExp(entity, 'g');
+        text = text.replace(regex, replacement);
+    });
+
+    return text;
+}
+
 function cleanText(text) {
+
     text = text.replace(/<div>/g, '');
     text = text.replace(/<\/div>/g, '');
     text = text.replace(/<p>/g, '\n');
     text = text.replace(/<\/p>/g, '\n');
     text = text.replace(/<br\s*[/]?>/g, '\n');
     text = text.replace(/<[^>]*>/g, '');
+    text = unescapeHTML(text);
 
     return text;
 }
 
+
 async function downloadNovel(title, episodeLinks) {
-    let novelText = '';
+
+    let novelText = `${title}\nDownloaded with novel-dl,\nhttps://github.com/yeorinhieut/novel-dl\n\n`;
+
     const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+    const targetElement = document.querySelector('#at-main > div.view-wrap > section > article > div.view-title > div > div > div.col-sm-8 > div:nth-child(3)');
+
+    if (!targetElement) {
+        console.error('Failed to find the target element for the progress bar.');
+        return;
+    }
+
+    const progressContainer = document.createElement('div');
+    progressContainer.style.textAlign = 'center';
+    targetElement.appendChild(progressContainer);
+
+    const progressBar = document.createElement('div');
+    progressBar.style.width = '0%';
+    progressBar.style.height = '15px';
+    progressBar.style.backgroundColor = '#4CAF50';
+    progressBar.style.marginTop = '10px';
+    progressBar.style.borderRadius = '3px';
+    progressContainer.appendChild(progressBar);
+
+    const progressLabel = document.createElement('div');
+    progressLabel.style.marginTop = '5px';
+    progressContainer.appendChild(progressLabel);
 
     for (let i = episodeLinks.length - 1; i >= 0; i--) {
         const episodeUrl = episodeLinks[i];
@@ -53,8 +97,14 @@ async function downloadNovel(title, episodeLinks) {
 
         novelText += episodeContent;
 
+        const progress = ((episodeLinks.length - i) / episodeLinks.length) * 100;
+        progressBar.style.width = `${progress}%`;
+        progressLabel.textContent = `Downloading... ${progress.toFixed(2)}% - Episode ${episodeLinks.length - i}/${episodeLinks.length}`;
+
         await delay(1000);
     }
+
+    progressContainer.parentNode.removeChild(progressContainer);
 
     const blob = new Blob([novelText], { type: 'text/plain' });
     const a = document.createElement('a');
@@ -95,14 +145,14 @@ function runCrawler() {
         return;
     }
 
+    console.log(`Task Appended: Preparing to download ${title}`);
+
     const episodeLinks = extractEpisodeLinks();
 
     if (episodeLinks.length === 0) {
         console.log('No episode links found.');
         return;
     }
-
-    console.log(`Task Appended: Preparing to download ${title}`);
 
     downloadNovel(title, episodeLinks);
 }
