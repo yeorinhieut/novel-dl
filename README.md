@@ -24,16 +24,21 @@ novel downloader for  📖🐰  (currently public beta)
 
 ## FAQ
 
-#### 한번에 여러 소설 다운로드가 가능한가요?
+### 한번에 여러 소설 다운로드가 가능한가요?
 
 여러 탭에서, 한번에 여러 소설을 다운로드를 시도하면, 차단 정책으로 인해 사이트 접속이 불가할 수 있습니다. 권장되지 않습니다.
 
-#### 오류가 발생했습니다.
+### 오류가 발생했습니다.
 
 [issues](https://github.com/yeorinhieut/novel-dl/issues) 섹션에 해당 오류를 제보해 주세요.
 
-#### 개선 사항을 요청하고 싶습니다.
+### 개선 사항을 요청하고 싶습니다.
 
 [issues](https://github.com/yeorinhieut/novel-dl/issues) 섹션에 해당 개선사항을 제시해 주세요.
+
+## 다른 프로그램도 만들어 주세요!
+- 공익적인 목적의 프로그램인 경우 언제나 문의를 받고 있습니다.
+- 사적 사용 프로그램 역시 외주 형식으로 제작하고 있습니다.
+- [이메일](mailto:yeorinhieut@gmail.com) 으로 연락 부탁드립니다.
 
 
