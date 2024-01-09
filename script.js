@@ -48,35 +48,52 @@ function cleanText(text) {
     return text;
 }
 
+function createModal() {
+    const modal = document.createElement('div');
+    modal.id = 'downloadProgressModal';
+    modal.style.display = 'block';
+    modal.style.position = 'fixed';
+    modal.style.zIndex = '1';
+    modal.style.left = '0';
+    modal.style.top = '0';
+    modal.style.width = '100%';
+    modal.style.height = '100%';
+    modal.style.overflow = 'auto';
+    modal.style.backgroundColor = 'rgba(0,0,0,0.4)';
+
+    const modalContent = document.createElement('div');
+    modalContent.style.backgroundColor = '#fefefe';
+    modalContent.style.position = 'relative'; // Add position relative for centering
+    modalContent.style.margin = '15% auto 0'; // Center vertically and leave space at the top
+    modalContent.style.padding = '20px';
+    modalContent.style.border = '1px solid #888';
+    modalContent.style.width = '50%';
+    modalContent.style.textAlign = 'center';
+
+    modal.appendChild(modalContent);
+
+    return { modal, modalContent };
+}
 
 async function downloadNovel(title, episodeLinks) {
-
-    let novelText = `${title}\nDownloaded with novel-dl,\nhttps://github.com/yeorinhieut/novel-dl\n\n`;
-
+    let novelText = `${title}\n\nDownloaded with novel-dl,\nhttps://github.com/yeorinhieut/novel-dl\n`;
     const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
-
-    const targetElement = document.querySelector('#at-main > div.view-wrap > section > article > div.view-title > div > div > div.col-sm-8 > div:nth-child(3)');
-
-    if (!targetElement) {
-        console.error('Failed to find the target element for the progress bar.');
-        return;
-    }
-
-    const progressContainer = document.createElement('div');
-    progressContainer.style.textAlign = 'center';
-    targetElement.appendChild(progressContainer);
+    const { modal, modalContent } = createModal();
+    document.body.appendChild(modal);
 
     const progressBar = document.createElement('div');
     progressBar.style.width = '0%';
-    progressBar.style.height = '15px';
-    progressBar.style.backgroundColor = '#4CAF50';
+    progressBar.style.height = '10px';
+    progressBar.style.backgroundColor = '#008CBA';
     progressBar.style.marginTop = '10px';
     progressBar.style.borderRadius = '3px';
-    progressContainer.appendChild(progressBar);
+    modalContent.appendChild(progressBar);
 
     const progressLabel = document.createElement('div');
     progressLabel.style.marginTop = '5px';
-    progressContainer.appendChild(progressLabel);
+    modalContent.appendChild(progressLabel);
+
+    const startTime = new Date();
 
     for (let i = episodeLinks.length - 1; i >= 0; i--) {
         const episodeUrl = episodeLinks[i];
@@ -86,25 +103,37 @@ async function downloadNovel(title, episodeLinks) {
             continue;
         }
 
-        console.log(`Downloading: ${title} - Episode ${episodeLinks.length - i}/${episodeLinks.length}`);
+        const logText = `Downloading: ${title} - Episode ${episodeLinks.length - i}/${episodeLinks.length}`;
+        console.log(logText);
 
         const episodeContent = await fetchNovelContent(episodeUrl);
 
         if (!episodeContent) {
             console.error(`Failed to fetch content for episode: ${episodeUrl}`);
-            continue;
+            progressBar.style.display = 'none';
+            progressLabel.style.display = 'none';
+            const errorLabel = document.createElement('div');
+            errorLabel.textContent = "An error occurred. Please check the console for details.";
+            modalContent.appendChild(errorLabel);
+            return;
         }
 
         novelText += episodeContent;
 
         const progress = ((episodeLinks.length - i) / episodeLinks.length) * 100;
         progressBar.style.width = `${progress}%`;
-        progressLabel.textContent = `Downloading... ${progress.toFixed(2)}% - Episode ${episodeLinks.length - i}/${episodeLinks.length}`;
+
+        const elapsedTime = new Date() - startTime;
+        const remainingTime = (elapsedTime / progress) * (100 - progress);
+        const remainingMinutes = Math.floor(remainingTime / (1000 * 60));
+        const remainingSeconds = Math.floor((remainingTime % (1000 * 60)) / 1000);
+
+        progressLabel.textContent = `Downloading... ${progress.toFixed(2)}%  -  Remaining Time: ${remainingMinutes}m ${remainingSeconds}s`;
 
         await delay(1000);
     }
 
-    progressContainer.parentNode.removeChild(progressContainer);
+    document.body.removeChild(modal);
 
     const blob = new Blob([novelText], { type: 'text/plain' });
     const a = document.createElement('a');
