@@ -1,7 +1,7 @@
 
 # novel-dl
 
-novel downloader for  📖🐰(booktoki)  (currently public beta)
+빠르고 간편한 북토끼 다운로더 (currently public beta)
 
 ## Features
 
