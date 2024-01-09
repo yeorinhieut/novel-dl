@@ -1,8 +1,7 @@
 
 # novel-dl
 
-빠르고 간편한 북토끼 다운로더 (stable)
-
+browser-based novel downloader for 📖🐰 (stable)
 ## Features
 
 -   📖🐰 북토끼 소설 다운로드
