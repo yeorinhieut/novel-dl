@@ -39,6 +39,6 @@ browser-based novel downloader for 📖🐰 (stable)
 ## 다른 프로그램도 만들어 주세요!
 - 공익적인 목적의 프로그램인 경우 언제나 문의를 받고 있습니다.
 - 사적 사용 프로그램 역시 외주 형식으로 제작하고 있습니다.
-- [이메일](mailto:yeorinhieut@gmail.com) 으로 연락 부탁드립니다.
+- [이메일](mailto:yeorinhieut@gmail.com) 혹은 디스코드 yeorinhieut 으로 연락 부탁드립니다.
 
 
