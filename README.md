@@ -1,11 +1,11 @@
 
 # novel-dl
 
-novel downloader for  📖🐰  (currently public beta)
+novel downloader for  📖🐰(booktoki)  (currently public beta)
 
 ## Features
 
--   📖🐰 소설 다운로드
+-   📖🐰 북토끼 소설 다운로드
 -   자동 파일 병합 기능
 -   브라우저 콘솔/북마크를 통한 빠른 실행
 -   프로그램 설치 불필요
