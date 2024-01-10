@@ -36,7 +36,6 @@ function unescapeHTML(text) {
 }
 
 function cleanText(text) {
-
     text = text.replace(/<div>/g, '');
     text = text.replace(/<\/div>/g, '');
     text = text.replace(/<p>/g, '\n');
@@ -63,8 +62,8 @@ function createModal() {
 
     const modalContent = document.createElement('div');
     modalContent.style.backgroundColor = '#fefefe';
-    modalContent.style.position = 'relative'; // Add position relative for centering
-    modalContent.style.margin = '15% auto 0'; // Center vertically and leave space at the top
+    modalContent.style.position = 'relative';
+    modalContent.style.margin = '15% auto 0';
     modalContent.style.padding = '20px';
     modalContent.style.border = '1px solid #888';
     modalContent.style.width = '50%';
@@ -72,13 +71,13 @@ function createModal() {
 
     modal.appendChild(modalContent);
 
-    return { modal, modalContent };
+    return {modal, modalContent};
 }
 
-async function downloadNovel(title, episodeLinks) {
+async function downloadNovel(title, episodeLinks, startEpisode) {
     let novelText = `${title}\n\nDownloaded with novel-dl,\nhttps://github.com/yeorinhieut/novel-dl\n`;
     const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
-    const { modal, modalContent } = createModal();
+    const {modal, modalContent} = createModal();
     document.body.appendChild(modal);
 
     const progressBar = document.createElement('div');
@@ -94,8 +93,9 @@ async function downloadNovel(title, episodeLinks) {
     modalContent.appendChild(progressLabel);
 
     const startTime = new Date();
+    const startingIndex = episodeLinks.length - startEpisode;
 
-    for (let i = episodeLinks.length - 1; i >= 0; i--) {
+    for (let i = startingIndex; i >= 0; i--) {
         const episodeUrl = episodeLinks[i];
 
         if (!episodeUrl.startsWith('https://booktoki')) {
@@ -103,7 +103,7 @@ async function downloadNovel(title, episodeLinks) {
             continue;
         }
 
-        const logText = `Downloading: ${title} - Episode ${episodeLinks.length - i}/${episodeLinks.length}`;
+        const logText = `Downloading: ${title} - Episode ${startingIndex - i + 1}/${startingIndex + 1}`;
         console.log(logText);
 
         const episodeContent = await fetchNovelContent(episodeUrl);
@@ -120,11 +120,12 @@ async function downloadNovel(title, episodeLinks) {
 
         novelText += episodeContent;
 
-        const progress = ((episodeLinks.length - i) / episodeLinks.length) * 100;
+        const progress = ((startingIndex - i + 1) / (startingIndex + 1)) * 100;
         progressBar.style.width = `${progress}%`;
 
         const elapsedTime = new Date() - startTime;
-        const remainingTime = (elapsedTime / progress) * (100 - progress);
+        const estimatedTotalTime = (elapsedTime / progress) * 100;
+        const remainingTime = estimatedTotalTime - elapsedTime;
         const remainingMinutes = Math.floor(remainingTime / (1000 * 60));
         const remainingSeconds = Math.floor((remainingTime % (1000 * 60)) / 1000);
 
@@ -135,10 +136,11 @@ async function downloadNovel(title, episodeLinks) {
 
     document.body.removeChild(modal);
 
-    const blob = new Blob([novelText], { type: 'text/plain' });
+    const fileName = `${title}(${startEpisode}~${episodeLinks.length}).txt`;
+    const blob = new Blob([novelText], {type: 'text/plain'});
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `${title}.txt`;
+    a.download = fileName;
     a.click();
 }
 
@@ -167,14 +169,13 @@ function runCrawler() {
         console.log('This script should be run on the novel episode list page.');
         return;
     }
+
     const title = extractTitle();
 
     if (!title) {
         console.log('Failed to extract the novel title.');
         return;
     }
-
-    console.log(`Task Appended: Preparing to download ${title}`);
 
     const episodeLinks = extractEpisodeLinks();
 
@@ -183,7 +184,23 @@ function runCrawler() {
         return;
     }
 
-    downloadNovel(title, episodeLinks);
+    const startEpisode = prompt(`Enter the starting episode number (1 to ${episodeLinks.length}):`, '1');
+
+    if (!startEpisode || isNaN(startEpisode)) {
+        console.log('Invalid episode number or user canceled the input.');
+        return;
+    }
+
+    const startEpisodeNumber = parseInt(startEpisode, 10);
+
+    if (startEpisodeNumber < 1 || startEpisodeNumber > episodeLinks.length) {
+        console.log('Invalid episode number. Please enter a number between 1 and the total number of episodes.');
+        return;
+    }
+
+    console.log(`Task Appended: Preparing to download ${title} starting from episode ${startEpisodeNumber}`);
+
+    downloadNovel(title, episodeLinks, startEpisodeNumber);
 }
 
 runCrawler();
