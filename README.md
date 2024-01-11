@@ -2,6 +2,9 @@
 # novel-dl
 
 browser-based novel downloader for 📖🐰 (stable)
+  
+[![Hits](https://hits.sh/github.com/yeorinhieut/novel-dl.svg)](https://hits.sh/github.com/yeorinhieut/novel-dl/)
+  
 ## Features
 
 -   📖🐰 북토끼 소설 다운로드
