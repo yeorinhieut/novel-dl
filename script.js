@@ -42,6 +42,8 @@ function cleanText(text) {
     text = text.replace(/<\/p>/g, '\n');
     text = text.replace(/<br\s*[/]?>/g, '\n');
     text = text.replace(/<[^>]*>/g, '');
+    text = text.replace(/ {2,}/g, ' ');
+    text = text.replace(/\n{2,}/g, '\n\n');
     text = unescapeHTML(text);
 
     return text;
