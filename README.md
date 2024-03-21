@@ -12,7 +12,7 @@ browser-based novel downloader for 📖🐰 (stable)
 -   브라우저 콘솔/북마크를 통한 빠른 실행
 -   프로그램 설치 불필요
 
-## Usage
+## Usage (사용 전 상단 star 부탁드립니다!)
 
 ### Via Browser Console (일회성 사용)
 1. [script.js](https://raw.githubusercontent.com/yeorinhieut/novel-dl/main/script.js) 를 복사하기
