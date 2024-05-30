@@ -133,7 +133,7 @@ async function downloadNovel(title, episodeLinks, startEpisode) {
 
         progressLabel.textContent = `Downloading... ${progress.toFixed(2)}%  -  Remaining Time: ${remainingMinutes}m ${remainingSeconds}s`;
 
-        await delay(1000);
+        await delay(Math.random() * 500 + 1000);
     }
 
     document.body.removeChild(modal);
@@ -163,9 +163,25 @@ function extractEpisodeLinks() {
     return episodeLinks;
 }
 
-function runCrawler() {
+async function fetchPage(url) {
+    const response = await fetch(url);
+    if (!response.ok) {
+        console.error(`Failed to fetch page: ${url}. Status: ${response.status}`);
+        return null;
+    }
+    const html = await response.text();
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    return doc;
+}
+
+async function runCrawler() {
     const novelPageRule = 'https://booktoki';
-    const currentUrl = window.location.href;
+    let currentUrl = window.location.href;
+
+    // Clean URL
+    const urlParts = currentUrl.split('?')[0];
+    currentUrl = urlParts;
 
     if (!currentUrl.startsWith(novelPageRule)) {
         console.log('This script should be run on the novel episode list page.');
@@ -179,14 +195,26 @@ function runCrawler() {
         return;
     }
 
-    const episodeLinks = extractEpisodeLinks();
+    const totalPages = prompt(`Enter the total number of pages for the novel:`, '2');
 
-    if (episodeLinks.length === 0) {
-        console.log('No episode links found.');
+    if (!totalPages || isNaN(totalPages)) {
+        console.log('Invalid page number or user canceled the input.');
         return;
     }
 
-    const startEpisode = prompt(`Enter the starting episode number (1 to ${episodeLinks.length}):`, '1');
+    const totalPagesNumber = parseInt(totalPages, 10);
+    const allEpisodeLinks = [];
+
+    for (let page = 1; page <= totalPagesNumber; page++) {
+        const nextPageUrl = `${currentUrl}?spage=${page}`;
+        const nextPageDoc = await fetchPage(nextPageUrl);
+        if (nextPageDoc) {
+            const nextPageLinks = Array.from(nextPageDoc.querySelectorAll('.item-subject')).map(link => link.getAttribute('href'));
+            allEpisodeLinks.push(...nextPageLinks);
+        }
+    }
+
+    const startEpisode = prompt(`Enter the starting episode number (1 to ${allEpisodeLinks.length}):`, '1');
 
     if (!startEpisode || isNaN(startEpisode)) {
         console.log('Invalid episode number or user canceled the input.');
@@ -195,14 +223,14 @@ function runCrawler() {
 
     const startEpisodeNumber = parseInt(startEpisode, 10);
 
-    if (startEpisodeNumber < 1 || startEpisodeNumber > episodeLinks.length) {
+    if (startEpisodeNumber < 1 || startEpisodeNumber > allEpisodeLinks.length) {
         console.log('Invalid episode number. Please enter a number between 1 and the total number of episodes.');
         return;
     }
 
     console.log(`Task Appended: Preparing to download ${title} starting from episode ${startEpisodeNumber}`);
 
-    downloadNovel(title, episodeLinks, startEpisodeNumber);
+    downloadNovel(title, allEpisodeLinks, startEpisodeNumber);
 }
 
 runCrawler();
