@@ -20,7 +20,7 @@ browser-based novel downloader for 📖🐰 (stable)
 3. 콘솔에 복사한 스크립트 붙여넣기
 
 ### Via Bookmark (다회성 사용/권장)
-1. 아래 스크립트를 복사하기
+1. 아래 [스크립트](https://raw.githubusercontent.com/yeorinhieut/novel-dl/main/bookmark.js)를 복사하기 (우측 복사버튼)
     ```javascript
     javascript:(function(){fetch('https://raw.githubusercontent.com/yeorinhieut/novel-dl/main/script.js').then(response=>{if(!response.ok){throw new Error(`Failed to fetch script: ${response.statusText}`);}return response.text();}).then(scriptContent=>{const script=document.createElement('script');script.textContent=scriptContent;document.head.appendChild(script);console.log('Script loaded and executed.');}).catch(error=>{console.error(error);});})();
     ```
