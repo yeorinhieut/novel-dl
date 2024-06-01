@@ -14,11 +14,6 @@ browser-based novel downloader for 📖🐰 (stable)
 
 ## Usage (사용 전 상단 star 부탁드립니다!)
 
-### Via Browser Console (일회성 사용)
-1. [script.js](https://raw.githubusercontent.com/yeorinhieut/novel-dl/main/script.js) 를 복사하기
-2. 다운로드 받을 소설의 회차 목록 페이지에서, f12 혹은 ctrl+shift+i 를 눌러 브라우저 콘솔 진입
-3. 콘솔에 복사한 스크립트 붙여넣기
-
 ### Via Bookmark (다회성 사용/권장)
 1. 아래 [스크립트](https://raw.githubusercontent.com/yeorinhieut/novel-dl/main/bookmark.js)를 복사하기 (우측 복사버튼)
     ```javascript
@@ -29,6 +24,11 @@ browser-based novel downloader for 📖🐰 (stable)
 4. 북마크 우클릭 - 수정
 5. 북마크 "url" 부분에 복사한 스크립트 붙여넣기 (제목 x)
 6. 다운로드 받을 소설의 회차 목록 페이지에서, 해당 북마크 클릭하기
+
+### Via Browser Console (일회성 사용/비권장)
+1. [script.js](https://raw.githubusercontent.com/yeorinhieut/novel-dl/main/script.js) 를 복사하기
+2. 다운로드 받을 소설의 회차 목록 페이지에서, f12 혹은 ctrl+shift+i 를 눌러 브라우저 콘솔 진입
+3. 콘솔에 복사한 스크립트 붙여넣기
 
 ## FAQ
 
