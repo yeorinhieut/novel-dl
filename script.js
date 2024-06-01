@@ -195,7 +195,7 @@ async function runCrawler() {
         return;
     }
 
-    const totalPages = prompt(`Enter the total number of pages for the novel:`, '2');
+    const totalPages = prompt(`Enter the total number of pages for the novel list (usually 1, 2 or more for novels with 1000+ story):`, '1');
 
     if (!totalPages || isNaN(totalPages)) {
         console.log('Invalid page number or user canceled the input.');
