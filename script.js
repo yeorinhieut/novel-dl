@@ -108,16 +108,32 @@ async function downloadNovel(title, episodeLinks, startEpisode) {
         const logText = `Downloading: ${title} - Episode ${startingIndex - i + 1}/${startingIndex + 1}`;
         console.log(logText);
 
-        const episodeContent = await fetchNovelContent(episodeUrl);
+        let episodeContent = await fetchNovelContent(episodeUrl);
 
         if (!episodeContent) {
             console.error(`Failed to fetch content for episode: ${episodeUrl}`);
-            progressBar.style.display = 'none';
-            progressLabel.style.display = 'none';
-            const errorLabel = document.createElement('div');
-            errorLabel.textContent = "An error occurred. Please check the console for details.";
-            modalContent.appendChild(errorLabel);
-            return;
+            
+            // Open the problematic page in a new tab
+            const newTab = window.open(episodeUrl, '_blank');
+            
+            // Ask the user to solve the CAPTCHA
+            const userConfirmed = await new Promise(resolve => {
+                const confirmResult = confirm("CAPTCHA detected. Please solve the CAPTCHA in the new tab, then click OK to continue.");
+                if (newTab) newTab.close();
+                resolve(confirmResult);
+            });
+
+            if (userConfirmed) {
+                // Retry fetching the content
+                episodeContent = await fetchNovelContent(episodeUrl);
+                if (!episodeContent) {
+                    console.error(`Failed to fetch content for episode after CAPTCHA: ${episodeUrl}`);
+                    continue;  // Skip this episode if it still fails
+                }
+            } else {
+                console.log("User cancelled. Skipping this episode.");
+                continue;
+            }
         }
 
         novelText += episodeContent;
