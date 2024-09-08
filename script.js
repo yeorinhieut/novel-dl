@@ -118,7 +118,7 @@ async function downloadNovel(title, episodeLinks, startEpisode) {
             
             // Ask the user to solve the CAPTCHA
             const userConfirmed = await new Promise(resolve => {
-                const confirmResult = confirm("CAPTCHA detected. Please solve the CAPTCHA in the new tab, then click OK to continue.");
+                const confirmResult = confirm(`CAPTCHA detected on ${episodeUrl} Please solve the CAPTCHA in the episode url, then click OK to continue. `);
                 if (newTab) newTab.close();
                 resolve(confirmResult);
             });
