@@ -112,13 +112,12 @@ async function downloadNovel(title, episodeLinks, startEpisode) {
 
         if (!episodeContent) {
             console.error(`Failed to fetch content for episode: ${episodeUrl}`);
-            
-            // Open the problematic page in a new tab
-            const newTab = window.open(episodeUrl, '_blank');
-            
+
             // Ask the user to solve the CAPTCHA
             const userConfirmed = await new Promise(resolve => {
-                const confirmResult = confirm(`CAPTCHA detected on ${episodeUrl} Please solve the CAPTCHA in the episode url, then click OK to continue. `);
+                const confirmResult = confirm(`이 페이지에 캡챠가 발견되었습니다.
+                 ${episodeUrl}.
+                 새 탭에서 해당 페이지에 접속하여 캡챠를 풀고, 확인을 눌러주세요.`);
                 if (newTab) newTab.close();
                 resolve(confirmResult);
             });
@@ -147,7 +146,7 @@ async function downloadNovel(title, episodeLinks, startEpisode) {
         const remainingMinutes = Math.floor(remainingTime / (1000 * 60));
         const remainingSeconds = Math.floor((remainingTime % (1000 * 60)) / 1000);
 
-        progressLabel.textContent = `Downloading... ${progress.toFixed(2)}%  -  Remaining Time: ${remainingMinutes}m ${remainingSeconds}s`;
+        progressLabel.textContent = `다운로드중... ${progress.toFixed(2)}%  -  남은 시간: ${remainingMinutes}분 ${remainingSeconds}초`;
 
         await delay(Math.random() * 500 + 1000);
     }
@@ -211,7 +210,8 @@ async function runCrawler() {
         return;
     }
 
-    const totalPages = prompt(`Enter the total number of pages for the novel list (usually 1, 2 or more for novels with 1000+ story):`, '1');
+    const totalPages = prompt(`소설 목록의 페이지 수를 입력하세요.
+    (1000화가 넘지 않는 경우 1, 1000화가 넘는 소설부터 페이지가 1개씩 늘어납니다.):`, '1');
 
     if (!totalPages || isNaN(totalPages)) {
         console.log('Invalid page number or user canceled the input.');
@@ -230,7 +230,7 @@ async function runCrawler() {
         }
     }
 
-    const startEpisode = prompt(`Enter the starting episode number (1 to ${allEpisodeLinks.length}):`, '1');
+    const startEpisode = prompt(`다운로드를 시작할 회차 번호를 입력하세요 (1 부터 ${allEpisodeLinks.length}):`, '1');
 
     if (!startEpisode || isNaN(startEpisode)) {
         console.log('Invalid episode number or user canceled the input.');
