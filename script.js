@@ -116,9 +116,8 @@ async function downloadNovel(title, episodeLinks, startEpisode) {
             // Ask the user to solve the CAPTCHA
             const userConfirmed = await new Promise(resolve => {
                 const confirmResult = confirm(`이 페이지에 캡챠가 발견되었습니다.
-                 ${episodeUrl}.
-                 새 탭에서 해당 페이지에 접속하여 캡챠를 풀고, 확인을 눌러주세요.`);
-                if (newTab) newTab.close();
+${episodeUrl}.
+새 탭에서 해당 페이지에 접속하여 캡챠를 풀고, 확인을 눌러주세요.`);
                 resolve(confirmResult);
             });
 
@@ -211,7 +210,7 @@ async function runCrawler() {
     }
 
     const totalPages = prompt(`소설 목록의 페이지 수를 입력하세요.
-    (1000화가 넘지 않는 경우 1, 1000화가 넘는 소설부터 페이지가 1개씩 늘어납니다.):`, '1');
+(1000화가 넘지 않는 경우 1, 1000화 이상부터 2~)`, '1');
 
     if (!totalPages || isNaN(totalPages)) {
         console.log('Invalid page number or user canceled the input.');
