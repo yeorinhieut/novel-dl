@@ -9,15 +9,33 @@ async function fetchNovelContent(url) {
     const html = await response.text();
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
-    const content = doc.querySelector('#novel_content');
+    
+    // Extract episode title
+    const titleElement = doc.querySelector('.toon-title');
+    let episodeTitle = 'Untitled Episode';
+    if (titleElement) {
+        episodeTitle = titleElement.getAttribute('title') || 
+                      titleElement.textContent.split('<br>')[0].trim() || 
+                      'Untitled Episode';
+    }
 
+    const content = doc.querySelector('#novel_content');
     if (!content) {
         console.error(`Failed to find '#novel_content' on the page: ${url}`);
         return null;
     }
 
-    return cleanText(content.innerHTML);
+    let cleanedContent = cleanText(content.innerHTML);
+    if (cleanedContent.startsWith(episodeTitle)) {
+        cleanedContent = cleanedContent.slice(episodeTitle.length).trim();
+    }
+
+    return {
+        episodeTitle: episodeTitle,
+        content: cleanedContent
+    };
 }
+
 
 function unescapeHTML(text) {
     const entities = {
@@ -41,10 +59,17 @@ function cleanText(text) {
     text = text.replace(/<p>/g, '\n');
     text = text.replace(/<\/p>/g, '\n');
     text = text.replace(/<br\s*[/]?>/g, '\n');
+    text = text.replace(/<img[^>]*>/gi, '[skipped image]');
     text = text.replace(/<[^>]*>/g, '');
     text = text.replace(/ {2,}/g, ' ');
-    text = text.replace(/\n{2,}/g, '\n\n');
     text = unescapeHTML(text);
+
+    text = text
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line => line.length > 0)
+        .join('\n\n')
+        .replace(/\n{3,}/g, '\n\n');
 
     return text;
 }
@@ -52,112 +77,130 @@ function cleanText(text) {
 function createModal() {
     const modal = document.createElement('div');
     modal.id = 'downloadProgressModal';
-    modal.style.display = 'block';
-    modal.style.position = 'fixed';
-    modal.style.zIndex = '1';
-    modal.style.left = '0';
-    modal.style.top = '0';
-    modal.style.width = '100%';
-    modal.style.height = '100%';
-    modal.style.overflow = 'auto';
-    modal.style.backgroundColor = 'rgba(0,0,0,0.4)';
+    Object.assign(modal.style, {
+        display: 'block',
+        position: 'fixed',
+        zIndex: '1',
+        left: '0',
+        top: '0',
+        width: '100%',
+        height: '100%',
+        overflow: 'auto',
+        backgroundColor: 'rgba(0,0,0,0.4)'
+    });
 
     const modalContent = document.createElement('div');
-    modalContent.style.backgroundColor = '#fefefe';
-    modalContent.style.position = 'relative';
-    modalContent.style.margin = '15% auto 0';
-    modalContent.style.padding = '20px';
-    modalContent.style.border = '1px solid #888';
-    modalContent.style.width = '50%';
-    modalContent.style.textAlign = 'center';
+    Object.assign(modalContent.style, {
+        backgroundColor: '#fefefe',
+        position: 'relative',
+        margin: '15% auto 0',
+        padding: '20px',
+        border: '1px solid #888',
+        width: '50%',
+        textAlign: 'center'
+    });
 
     modal.appendChild(modalContent);
-
     return {modal, modalContent};
 }
 
+async function loadScript(url) {
+    return new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = url;
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+    });
+}
+
+function sanitizeFilename(name) {
+    return name.replace(/[/\\?%*:|"<>]/g, '_');
+}
+
 async function downloadNovel(title, episodeLinks, startEpisode) {
-    let novelText = `${title}\n\nDownloaded with novel-dl,\nhttps://github.com/yeorinhieut/novel-dl\n`;
-    const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+    const saveOption = prompt('저장 방식을 선택하세요:\n1 - 한 파일로 병합\n2 - 각 회차별 저장 (ZIP)', '1');
+    if (!saveOption) return;
+    
+    const saveAsZip = saveOption === '2';
+    let zip;
+    
+    if (saveAsZip) {
+        try {
+            await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
+            zip = new JSZip();
+        } catch (e) {
+            alert('ZIP 라이브러리 로드 실패!');
+            return;
+        }
+    }
+
     const {modal, modalContent} = createModal();
     document.body.appendChild(modal);
 
     const progressBar = document.createElement('div');
-    progressBar.style.width = '0%';
-    progressBar.style.height = '10px';
-    progressBar.style.backgroundColor = '#008CBA';
-    progressBar.style.marginTop = '10px';
-    progressBar.style.borderRadius = '3px';
+    Object.assign(progressBar.style, {
+        width: '0%',
+        height: '10px',
+        backgroundColor: '#008CBA',
+        marginTop: '10px',
+        borderRadius: '3px'
+    });
     modalContent.appendChild(progressBar);
 
     const progressLabel = document.createElement('div');
     progressLabel.style.marginTop = '5px';
     modalContent.appendChild(progressLabel);
 
-    const startTime = new Date();
+    const startTime = Date.now();
     const startingIndex = episodeLinks.length - startEpisode;
+    let novelText = `${title}\n\nDownloaded with novel-dl,\nhttps://github.com/yeorinhieut/novel-dl\n\n`;
 
     for (let i = startingIndex; i >= 0; i--) {
         const episodeUrl = episodeLinks[i];
+        if (!episodeUrl.startsWith('https://booktoki')) continue;
 
-        if (!episodeUrl.startsWith('https://booktoki')) {
-            console.log(`Skipping invalid episode link: ${episodeUrl}`);
-            continue;
+        let result = await fetchNovelContent(episodeUrl);
+        if (!result) {
+            const userConfirmed = confirm(`CAPTCHA가 발견되었습니다!\n${episodeUrl}\n캡챠 해결 후 확인을 눌러주세요.`);
+            if (!userConfirmed) continue;
+            result = await fetchNovelContent(episodeUrl);
+            if (!result) continue;
         }
 
-        const logText = `Downloading: ${title} - Episode ${startingIndex - i + 1}/${startingIndex + 1}`;
-        console.log(logText);
-
-        let episodeContent = await fetchNovelContent(episodeUrl);
-
-        if (!episodeContent) {
-            console.error(`Failed to fetch content for episode: ${episodeUrl}`);
-
-            // Ask the user to solve the CAPTCHA
-            const userConfirmed = await new Promise(resolve => {
-                const confirmResult = confirm(`이 페이지에 캡챠가 발견되었습니다.
-${episodeUrl}.
-새 탭에서 해당 페이지에 접속하여 캡챠를 풀고, 확인을 눌러주세요.`);
-                resolve(confirmResult);
-            });
-
-            if (userConfirmed) {
-                // Retry fetching the content
-                episodeContent = await fetchNovelContent(episodeUrl);
-                if (!episodeContent) {
-                    console.error(`Failed to fetch content for episode after CAPTCHA: ${episodeUrl}`);
-                    continue;  // Skip this episode if it still fails
-                }
-            } else {
-                console.log("User cancelled. Skipping this episode.");
-                continue;
-            }
+        const {episodeTitle, content} = result;
+        
+        if (saveAsZip) {
+            zip.file(`${sanitizeFilename(episodeTitle)}.txt`, content);
+        } else {
+            novelText += `${episodeTitle}\n\n${content}\n\n`;
         }
-
-        novelText += episodeContent;
 
         const progress = ((startingIndex - i + 1) / (startingIndex + 1)) * 100;
         progressBar.style.width = `${progress}%`;
 
-        const elapsedTime = new Date() - startTime;
-        const estimatedTotalTime = (elapsedTime / progress) * 100;
-        const remainingTime = estimatedTotalTime - elapsedTime;
-        const remainingMinutes = Math.floor(remainingTime / (1000 * 60));
-        const remainingSeconds = Math.floor((remainingTime % (1000 * 60)) / 1000);
+        const elapsed = Date.now() - startTime;
+        const remaining = (elapsed / progress * (100 - progress)) || 0;
+        progressLabel.textContent = `진행률: ${progress.toFixed(1)}% (남은 시간: ${Math.floor(remaining/60000)}분 ${Math.floor((remaining%60000)/1000)}초)`;
 
-        progressLabel.textContent = `다운로드중... ${progress.toFixed(2)}%  -  남은 시간: ${remainingMinutes}분 ${remainingSeconds}초`;
-
-        await delay(Math.random() * 500 + 1000);
+        await new Promise(r => setTimeout(r, 500 + Math.random() * 500));
     }
 
     document.body.removeChild(modal);
 
-    const fileName = `${title}(${startEpisode}~${episodeLinks.length}).txt`;
-    const blob = new Blob([novelText], {type: 'text/plain'});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = fileName;
-    a.click();
+    if (saveAsZip) {
+        const zipBlob = await zip.generateAsync({type: 'blob'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(zipBlob);
+        a.download = `${sanitizeFilename(title)}.zip`;
+        a.click();
+    } else {
+        const blob = new Blob([novelText], {type: 'text/plain'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `${sanitizeFilename(title)}(${startEpisode}~${episodeLinks.length}).txt`;
+        a.click();
+    }
 }
 
 function extractTitle() {
