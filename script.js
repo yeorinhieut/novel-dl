@@ -36,13 +36,20 @@ async function fetchNovelContent(url) {
     };
 }
 
-
 function unescapeHTML(text) {
     const entities = {
-        '&lt;': '<', '&gt;': '>', '&amp;': '&',
-        '&quot;': '"', '&apos;': "'", '&#039;': "'",
-        '&nbsp;': ' ', '&ndash;': '–', '&mdash;': '—',
-        '&lsquo;': '‘', '&rsquo;': '’', '&ldquo;': '“', '&rdquo;': '”'
+        '&lt;': '<',
+        '&gt;': '>',
+        '&amp;': '&',
+        '&quot;': '"',
+        '&apos;': "'",
+        '&nbsp;': ' ',
+        '&ndash;': '–',
+        '&mdash;': '—',
+        '&lsquo;': '‘',
+        '&rsquo;': '’',
+        '&ldquo;': '“',
+        '&rdquo;': '”'
     };
 
     Object.entries(entities).forEach(([entity, replacement]) => {
@@ -183,7 +190,7 @@ async function downloadNovel(title, episodeLinks, startEpisode) {
         const remaining = (elapsed / progress * (100 - progress)) || 0;
         progressLabel.textContent = `진행률: ${progress.toFixed(1)}% (남은 시간: ${Math.floor(remaining/60000)}분 ${Math.floor((remaining%60000)/1000)}초)`;
 
-        await new Promise(r => setTimeout(r, 500 + Math.random() * 500));
+        await new Promise(r => setTimeout(r, 1000 + Math.random() * 2000));
     }
 
     document.body.removeChild(modal);
