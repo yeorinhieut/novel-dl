@@ -4,6 +4,9 @@
 browser-based novel downloader for 📖🐰 (stable)
   
 [![Hits](https://hits.sh/github.com/yeorinhieut/novel-dl.svg)](https://hits.sh/github.com/yeorinhieut/novel-dl/)
+[![Daily](https://data.jsdelivr.com/v1/stats/packages/gh/yeorinhieut/novel-dl/badge?type=hits&period=day)](https://data.jsdelivr.com/v1/stats/packages/gh/yeorinhieut/novel-dl/badge?type=hits&period=day)
+[![Weekly](https://data.jsdelivr.com/v1/stats/packages/gh/yeorinhieut/novel-dl/badge?type=hits&period=week)](https://data.jsdelivr.com/v1/stats/packages/gh/yeorinhieut/novel-dl/badge?type=hits&period=week)
+[![Monthly](https://data.jsdelivr.com/v1/stats/packages/gh/yeorinhieut/novel-dl/badge?type=hits&period=month)](https://data.jsdelivr.com/v1/stats/packages/gh/yeorinhieut/novel-dl/badge?type=hits&period=month)
   
 ## Features
 
@@ -17,7 +20,7 @@ browser-based novel downloader for 📖🐰 (stable)
 ### Via Bookmark (다회성 사용/권장)
 1. 아래 [스크립트](https://raw.githubusercontent.com/yeorinhieut/novel-dl/main/bookmark.js)를 복사하기 (우측 복사버튼)
     ```javascript
-    javascript:(function(){fetch('https://raw.githubusercontent.com/yeorinhieut/novel-dl/main/script.js').then(response=>{if(!response.ok){throw new Error(`Failed to fetch script: ${response.statusText}`);}return response.text();}).then(scriptContent=>{const script=document.createElement('script');script.textContent=scriptContent;document.head.appendChild(script);console.log('Script loaded and executed.');}).catch(error=>{console.error(error);});})();
+    javascript:(function(){fetch('https://cdn.jsdelivr.net/gh/yeorinhieut/novel-dl/script.min.js').then(response=>{if(!response.ok){throw new Error(`Failed to fetch script: ${response.statusText}`);}return response.text();}).then(scriptContent=>{const script=document.createElement('script');script.textContent=scriptContent;document.head.appendChild(script);console.log('Script loaded and executed.');}).catch(error=>{console.error(error);});})();
     ```
 2. 브라우저에서, `ctrl+shift+b` 를 통해 북마크바 표시하기
 3. `ctrl+d` 를 통해 아무 페이지에서 북마크 추가
