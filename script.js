@@ -1168,6 +1168,27 @@ async function runCrawler() {
 		});
 		loadingContent.appendChild(loadingText);
 
+		// 로딩 애니메이션용 CSS를 동적으로 추가
+		if (!document.getElementById("custom-spinner-style")) {
+			const style = document.createElement("style");
+			style.id = "custom-spinner-style";
+			style.textContent = `
+				@keyframes custom-spin {
+					0% { transform: rotate(0deg); }
+					100% { transform: rotate(360deg); }
+				}
+				.custom-spinner {
+					width: 32px;
+					height: 32px;
+					border: 3px solid #f3f3f3;
+					border-top: 3px solid #3a7bd5;
+					border-radius: 50%;
+					animation: custom-spin 1s linear infinite;
+				}
+			`;
+			document.head.appendChild(style);
+		}
+
 		// 로딩 애니메이션 생성
 		const spinnerContainer = document.createElement("div");
 		Object.assign(spinnerContainer.style, {
@@ -1178,14 +1199,7 @@ async function runCrawler() {
 		});
 
 		const spinner = document.createElement("div");
-		Object.assign(spinner.style, {
-			width: "32px",
-			height: "32px",
-			border: "3px solid #f3f3f3",
-			borderTop: "3px solid #3a7bd5",
-			borderRadius: "50%",
-			animation: "spin 1s linear infinite",
-		});
+		spinner.className = "custom-spinner";
 
 		spinnerContainer.appendChild(spinner);
 		loadingContent.appendChild(spinnerContainer);
