@@ -118,7 +118,7 @@ function cleanText(text) {
 	return cleaned;
 }
 
-function createModal(title) {
+function createModal(title, isBusyRef) {
 	// 애니메이션 스타일이 아직 추가되지 않은 경우 문서에 추가합니다
 	if (!document.getElementById("novel-dl-styles")) {
 		const style = document.createElement("style");
@@ -208,7 +208,11 @@ function createModal(title) {
 		lineHeight: "1",
 	});
 	closeButton.onclick = () => {
-		if (confirm("다운로드를 취소하시겠습니까?")) {
+		if (isBusyRef?.value) {
+			if (confirm("다운로드를 취소하시겠습니까?")) {
+				document.body.removeChild(modal);
+			}
+		} else {
 			document.body.removeChild(modal);
 		}
 	};
@@ -297,6 +301,7 @@ function createModal(title) {
 		timeRemaining,
 		progressBar,
 		detailedProgress,
+		closeButton,
 	};
 }
 
@@ -592,7 +597,7 @@ async function downloadNovel(
 			timeRemaining,
 			progressBar,
 			detailedProgress,
-		} = createModal(`"${title}" 다운로드 중`);
+		} = createModal(`"${title}" 다운로드 중`, { value: true });
 
 		document.body.appendChild(modal);
 
@@ -989,6 +994,7 @@ async function runCrawler() {
 		defaultValue,
 		placeholder,
 		description,
+		validator,
 	) {
 		const group = document.createElement("div");
 		Object.assign(group.style, {
@@ -1031,7 +1037,32 @@ async function runCrawler() {
 		});
 		group.appendChild(input);
 
-		return { group, input };
+		// 에러 메시지 div 추가
+		const errorDiv = document.createElement("div");
+		errorDiv.className = "error-message";
+		Object.assign(errorDiv.style, {
+			color: "#e74c3c",
+			fontSize: "12px",
+			height: "16px",
+			marginTop: "4px",
+			display: "block",
+		});
+		group.appendChild(errorDiv);
+
+		// 입력 이벤트로 실시간 검증
+		if (validator) {
+			input.addEventListener("input", () => {
+				const msg = validator(input.value);
+				errorDiv.textContent = msg || "";
+				if (msg) {
+					input.style.borderColor = "#e74c3c";
+				} else {
+					input.style.borderColor = "#e4e9f0";
+				}
+			});
+		}
+
+		return { group, input, errorDiv };
 	}
 
 	// 페이지 입력
@@ -1041,6 +1072,12 @@ async function runCrawler() {
 		"1",
 		"페이지 수 입력",
 		"1000화가 넘지 않는 경우 1, 1000화 이상부터 2~ 입력",
+		(value) => {
+			if (Number.isNaN(Number(value)) || Number(value) < 1) {
+				return "유효한 페이지 수를 입력해주세요.";
+			}
+			return null;
+		},
 	);
 	dialogContent.appendChild(pagesInput.group);
 	pagesInput.input.min = 1;
@@ -1283,6 +1320,13 @@ async function runCrawler() {
 			"number",
 			"1",
 			"시작 회차 번호",
+			"1부터 시작",
+			(value) => {
+				if (Number.isNaN(Number(value)) || Number(value) < 1) {
+					return "유효한 회차를 입력해주세요.";
+				}
+				return null;
+			},
 		);
 		rangeContent.appendChild(startInput.group);
 		startInput.input.min = 1;
@@ -1294,6 +1338,17 @@ async function runCrawler() {
 			"number",
 			allEpisodeLinks.length.toString(),
 			"종료 회차 번호",
+			"마지막 회차 입력",
+			(value) => {
+				if (
+					Number.isNaN(Number(value)) ||
+					Number(value) < 1 ||
+					Number(value) > allEpisodeLinks.length
+				) {
+					return "유효한 회차를 입력해주세요.";
+				}
+				return null;
+			},
 		);
 		rangeContent.appendChild(endInput.group);
 		endInput.input.min = 1;
@@ -1306,6 +1361,12 @@ async function runCrawler() {
 			"5000",
 			"딜레이 입력",
 			"⚠️ 권장: 기본값(5000ms=5초)을 유지하세요. 변경 시 차단 위험이 있습니다.",
+			(value) => {
+				if (Number.isNaN(Number(value)) || Number(value) < 1000) {
+					return "유효한 딜레이 값을 입력해주세요. (최소 1000ms)";
+				}
+				return null;
+			},
 		);
 		rangeContent.appendChild(delayInput.group);
 		delayInput.input.min = 1000;
@@ -1468,7 +1529,44 @@ async function runCrawler() {
 
 			downloadNovel(title, allEpisodeLinks, startEpisode, endEpisode, delay);
 		};
+
+		// 모달 append 후 첫 input에 focus, keydown으로 Tab/Shift+Tab, ESC 닫기 지원
+		setModalAccessibility(rangeDialog, startInput.input, () =>
+			document.body.removeChild(rangeDialog),
+		);
 	};
+
+	// 입력 모달 생성 후 setModalAccessibility(dialog, pagesInput.input, () => document.body.removeChild(dialog));
+	// 범위 모달 생성 후 setModalAccessibility(rangeDialog, startInput.input, () => document.body.removeChild(rangeDialog));
+}
+
+function setModalAccessibility(modal, firstInput, closeCallback) {
+	if (firstInput) firstInput.focus();
+	modal.tabIndex = -1;
+	modal.focus();
+	modal.addEventListener("keydown", (e) => {
+		const focusable = modal.querySelectorAll(
+			'input, button, [tabindex]:not([tabindex="-1"])',
+		);
+		const focusArr = Array.from(focusable);
+		const idx = focusArr.indexOf(document.activeElement);
+		if (e.key === "Tab") {
+			if (e.shiftKey) {
+				if (idx === 0) {
+					focusArr[focusArr.length - 1].focus();
+					e.preventDefault();
+				}
+			} else {
+				if (idx === focusArr.length - 1) {
+					focusArr[0].focus();
+					e.preventDefault();
+				}
+			}
+		}
+		if (e.key === "Escape") {
+			closeCallback();
+		}
+	});
 }
 
 runCrawler();
