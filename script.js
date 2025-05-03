@@ -853,7 +853,9 @@ async function downloadNovel(
 			};
 
 			contactContainer.appendChild(issueLink);
+			const rangeContent = document.createElement("div");
 			rangeContent.appendChild(contactContainer);
+			document.body.appendChild(rangeContent);
 
 			completionDialog.appendChild(completionContent);
 			document.body.appendChild(completionDialog);
