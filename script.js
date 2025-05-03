@@ -1,4 +1,5 @@
 async function fetchNovelContent(url) {
+	console.log("[fetchNovelContent] 시작", url);
 	try {
 		const response = await fetch(url);
 
@@ -6,6 +7,7 @@ async function fetchNovelContent(url) {
 			console.error(
 				`서버 오류: ${url}에서 콘텐츠를 가져오는 데 실패했습니다. 상태: ${response.status}`,
 			);
+			console.log("[fetchNovelContent] 서버 응답 실패", response.status);
 			return null;
 		}
 
@@ -25,7 +27,10 @@ async function fetchNovelContent(url) {
 		let titleElement = null;
 		for (const selector of titleSelectors) {
 			titleElement = doc.querySelector(selector);
-			if (titleElement) break;
+			if (titleElement) {
+				console.log(`[fetchNovelContent] 제목 선택자 발견: ${selector}`);
+				break;
+			}
 		}
 
 		let episodeTitle = "제목 없는 에피소드";
@@ -34,6 +39,7 @@ async function fetchNovelContent(url) {
 				titleElement.getAttribute("title") ||
 				titleElement.textContent.split("<br>")[0].trim() ||
 				"제목 없는 에피소드";
+			console.log("[fetchNovelContent] 추출된 제목:", episodeTitle);
 		}
 
 		// 여러 콘텐츠 선택자를 시도합니다
@@ -48,11 +54,15 @@ async function fetchNovelContent(url) {
 		let content = null;
 		for (const selector of contentSelectors) {
 			content = doc.querySelector(selector);
-			if (content) break;
+			if (content) {
+				console.log(`[fetchNovelContent] 콘텐츠 선택자 발견: ${selector}`);
+				break;
+			}
 		}
 
 		if (!content) {
 			console.error(`콘텐츠를 찾을 수 없습니다: ${url}`);
+			console.log("[fetchNovelContent] 콘텐츠 요소 없음");
 			return null;
 		}
 
@@ -61,12 +71,19 @@ async function fetchNovelContent(url) {
 			cleanedContent = cleanedContent.slice(episodeTitle.length).trim();
 		}
 
+		console.log(
+			"[fetchNovelContent] 정제된 콘텐츠(100자):",
+			cleanedContent.slice(0, 100),
+		);
+
+		console.log("[fetchNovelContent] 종료", { episodeTitle });
 		return {
 			episodeTitle: episodeTitle,
 			content: cleanedContent,
 		};
 	} catch (error) {
 		console.error(`fetchNovelContent 오류: ${error.message}`);
+		console.log("[fetchNovelContent] 예외 발생", error);
 		return null;
 	}
 }
@@ -384,6 +401,12 @@ async function downloadNovel(
 	endEpisode,
 	delayMs = 5000,
 ) {
+	console.log("[downloadNovel] 시작", {
+		title,
+		startEpisode,
+		endEpisode,
+		delayMs,
+	});
 	// 저장 옵션 선택을 위한 최신 대화 상자 생성
 	const dialog = document.createElement("div");
 	Object.assign(dialog.style, {
@@ -572,6 +595,7 @@ async function downloadNovel(
 	document.body.appendChild(dialog);
 
 	async function processDownload(saveAsZip) {
+		console.log("[downloadNovel] 저장 방식:", saveAsZip ? "ZIP" : "단일 파일");
 		let zip;
 
 		if (saveAsZip) {
@@ -580,7 +604,9 @@ async function downloadNovel(
 					"https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js",
 				);
 				zip = new JSZip();
+				console.log("[downloadNovel] JSZip 로드 성공");
 			} catch (e) {
+				console.log("[downloadNovel] JSZip 로드 실패", e);
 				alert("ZIP 라이브러리 로드 실패!");
 				return;
 			}
@@ -589,6 +615,11 @@ async function downloadNovel(
 		const startingIndex = episodeLinks.length - startEpisode;
 		const endingIndex = episodeLinks.length - endEpisode;
 		const totalEpisodes = startingIndex - endingIndex + 1;
+		console.log("[downloadNovel] 다운로드 범위", {
+			startingIndex,
+			endingIndex,
+			totalEpisodes,
+		});
 
 		const {
 			modal,
@@ -612,8 +643,10 @@ async function downloadNovel(
 
 		for (let i = startingIndex; i >= endingIndex; i--) {
 			const episodeUrl = episodeLinks[i];
+			console.log(`[downloadNovel] ${i}번째 에피소드 URL:`, episodeUrl);
 			if (!episodeUrl.startsWith("https://booktoki")) {
 				failedEpisodes++;
+				console.log(`[downloadNovel] booktoki URL 아님, 건너뜀: ${episodeUrl}`);
 				continue;
 			}
 
@@ -625,12 +658,18 @@ async function downloadNovel(
 			if (!result) {
 				captchaCount++;
 				statusElement.textContent = `⚠️ CAPTCHA 감지됨! ${episodeNumber}화를 처리할 수 없습니다.`;
+				console.log(
+					`[downloadNovel] CAPTCHA 감지, 사용자 확인 대기: ${episodeUrl}`,
+				);
 
 				const userConfirmed = confirm(
 					`CAPTCHA가 발견되었습니다!\n${episodeUrl}\n\n캡챠를 해결한 후 확인을 눌러주세요.`,
 				);
 				if (!userConfirmed) {
 					failedEpisodes++;
+					console.log(
+						`[downloadNovel] 사용자 캡챠 미해결, 건너뜀: ${episodeUrl}`,
+					);
 					continue;
 				}
 
@@ -639,11 +678,13 @@ async function downloadNovel(
 				if (!result) {
 					statusElement.textContent = `❌ ${episodeNumber}화 다운로드 실패`;
 					failedEpisodes++;
+					console.log(`[downloadNovel] 재시도 실패: ${episodeUrl}`);
 					continue;
 				}
 			}
 
 			const { episodeTitle, content } = result;
+			console.log(`[downloadNovel] 에피소드 다운로드 성공: ${episodeTitle}`);
 
 			if (saveAsZip) {
 				zip.file(`${sanitizeFilename(episodeTitle)}.txt`, content);
@@ -671,11 +712,17 @@ async function downloadNovel(
 			await new Promise((r) => setTimeout(r, delayMs));
 		}
 
+		console.log("[downloadNovel] 다운로드 루프 종료", {
+			completedEpisodes,
+			failedEpisodes,
+			captchaCount,
+		});
 		statusElement.textContent = "✅ 다운로드 완료, 파일 생성 중...";
 		progressBar.style.width = "100%";
 		progressText.textContent = "100%";
 
 		setTimeout(() => {
+			console.log("[downloadNovel] 파일 생성 및 다운로드 버튼 표시");
 			document.body.removeChild(modal);
 
 			// 완료 대화 상자 생성
@@ -932,6 +979,7 @@ async function fetchPage(url) {
 }
 
 async function runCrawler() {
+	console.log("[runCrawler] 시작");
 	const novelPageRule = "https://booktoki";
 	let currentUrl = window.location.href;
 
@@ -939,15 +987,20 @@ async function runCrawler() {
 	const urlParts = currentUrl.split("?")[0];
 	currentUrl = urlParts;
 
+	console.log("[runCrawler] 현재 URL:", currentUrl);
+
 	if (!currentUrl.startsWith(novelPageRule)) {
 		alert("이 스크립트는 북토기 소설 목록 페이지에서 실행해야 합니다.");
+		console.log("[runCrawler] 북토기 페이지 아님, 종료");
 		return;
 	}
 
 	const title = extractTitle();
+	console.log("[runCrawler] 추출된 제목:", title);
 
 	if (!title) {
 		alert("소설 제목을 추출하지 못했습니다.");
+		console.log("[runCrawler] 제목 추출 실패, 종료");
 		return;
 	}
 
@@ -1152,9 +1205,11 @@ async function runCrawler() {
 	// 계속 버튼 클릭 처리
 	continueButton.onclick = async () => {
 		const totalPages = Number.parseInt(pagesInput.input.value, 10);
+		console.log("[runCrawler] 사용자 입력 페이지 수:", totalPages);
 
 		if (Number.isNaN(totalPages) || totalPages < 1) {
 			alert("유효한 페이지 수를 입력해주세요.");
+			console.log("[runCrawler] 잘못된 페이지 수 입력, 종료");
 			return;
 		}
 
@@ -1251,22 +1306,32 @@ async function runCrawler() {
 		for (let page = 1; page <= totalPages; page++) {
 			loadingText.textContent = `페이지 ${page}/${totalPages} 불러오는 중...`;
 			const nextPageUrl = `${currentUrl}?spage=${page}`;
+			console.log(`[runCrawler] 페이지 ${page} URL:`, nextPageUrl);
 			const nextPageDoc = await fetchPage(nextPageUrl);
 			if (nextPageDoc) {
 				const nextPageLinks = Array.from(
 					nextPageDoc.querySelectorAll(".item-subject"),
 				).map((link) => link.getAttribute("href"));
+				console.log(
+					`[runCrawler] 페이지 ${page} 에피소드 링크 수:`,
+					nextPageLinks.length,
+				);
 				allEpisodeLinks.push(...nextPageLinks);
 				loadingText.textContent = `${allEpisodeLinks.length}개 에피소드 발견됨`;
+			} else {
+				console.log(`[runCrawler] 페이지 ${page} 로드 실패`);
 			}
 			// 속도 제한을 방지하기 위한 약간의 지연
 			await new Promise((r) => setTimeout(r, 500));
 		}
 
+		console.log("[runCrawler] 전체 에피소드 링크 수:", allEpisodeLinks.length);
+
 		document.body.removeChild(loadingDialog);
 
 		if (allEpisodeLinks.length === 0) {
 			alert("에피소드 목록을 가져오지 못했습니다.");
+			console.log("[runCrawler] 에피소드 링크 없음, 종료");
 			return;
 		}
 
@@ -1505,6 +1570,10 @@ async function runCrawler() {
 		downloadButton.onclick = () => {
 			const startEpisode = Number.parseInt(startInput.input.value, 10);
 			const endEpisode = Number.parseInt(endInput.input.value, 10);
+			console.log("[runCrawler] 다운로드 범위 입력:", {
+				startEpisode,
+				endEpisode,
+			});
 
 			if (
 				Number.isNaN(startEpisode) ||
@@ -1514,12 +1583,15 @@ async function runCrawler() {
 				endEpisode > allEpisodeLinks.length
 			) {
 				alert("유효한 회차 범위를 입력해주세요.");
+				console.log("[runCrawler] 잘못된 회차 범위 입력, 종료");
 				return;
 			}
 
 			const delay = Number.parseInt(delayInput.input.value, 10);
+			console.log("[runCrawler] 딜레이 입력:", delay);
 			if (Number.isNaN(delay) || delay < 1000) {
 				alert("유효한 딜레이 값을 입력해주세요. (최소 1000ms)");
+				console.log("[runCrawler] 잘못된 딜레이 입력, 종료");
 				return;
 			}
 
