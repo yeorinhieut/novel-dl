@@ -1605,16 +1605,24 @@ async function runCrawler() {
 		};
 
 		// 모달 append 후 첫 input에 focus, keydown으로 Tab/Shift+Tab, ESC 닫기 지원
-		setModalAccessibility(rangeDialog, startInput.input, () =>
-			document.body.removeChild(rangeDialog),
+		setModalAccessibility(
+			rangeDialog,
+			startInput.input,
+			() => document.body.removeChild(rangeDialog),
+			downloadButton,
 		);
 	};
 
-	// 입력 모달 생성 후 setModalAccessibility(dialog, pagesInput.input, () => document.body.removeChild(dialog));
-	// 범위 모달 생성 후 setModalAccessibility(rangeDialog, startInput.input, () => document.body.removeChild(rangeDialog));
+	// 입력 모달 생성 후 setModalAccessibility(dialog, pagesInput.input, () => document.body.removeChild(dialog), continueButton);
+	// 범위 모달 생성 후 setModalAccessibility(rangeDialog, startInput.input, () => document.body.removeChild(rangeDialog), downloadButton);
 }
 
-function setModalAccessibility(modal, firstInput, closeCallback) {
+function setModalAccessibility(
+	modal,
+	firstInput,
+	closeCallback,
+	defaultButton,
+) {
 	if (firstInput) firstInput.focus();
 	modal.tabIndex = -1;
 	modal.focus();
@@ -1640,7 +1648,25 @@ function setModalAccessibility(modal, firstInput, closeCallback) {
 		if (e.key === "Escape") {
 			closeCallback();
 		}
+		if (e.key === "Enter" && defaultButton) {
+			// input에 포커스가 있거나 버튼에 포커스가 있을 때만 동작
+			if (
+				document.activeElement.tagName === "INPUT" ||
+				document.activeElement === defaultButton
+			) {
+				defaultButton.click();
+			}
+		}
 	});
 }
 
 runCrawler();
+
+// 전역 단축키 추가 (Ctrl+Shift+D로 runCrawler 실행)
+document.addEventListener("keydown", (e) => {
+	if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "d") {
+		e.preventDefault();
+		console.log("[핫키] Ctrl+Shift+D: runCrawler 실행");
+		runCrawler();
+	}
+});
