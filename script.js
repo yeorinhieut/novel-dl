@@ -827,6 +827,10 @@ async function downloadNovel(
 							`"${title}" 다운로드 시작`,
 							`${completedEpisodes}화가 ZIP 파일로 저장됩니다.`,
 						);
+						showChromeNotification(
+							`"${title}" 다운로드 시작`,
+							`${completedEpisodes}화가 ZIP 파일로 저장됩니다.`,
+						);
 						document.body.removeChild(completionDialog);
 					});
 				} else {
@@ -838,6 +842,10 @@ async function downloadNovel(
 
 					// 다운로드 클릭 후 성공 알림 표시
 					showNotification(
+						`"${title}" 다운로드 시작`,
+						`${completedEpisodes}화가 텍스트 파일로 저장됩니다.`,
+					);
+					showChromeNotification(
 						`"${title}" 다운로드 시작`,
 						`${completedEpisodes}화가 텍스트 파일로 저장됩니다.`,
 					);
@@ -941,6 +949,36 @@ function showNotification(title, message) {
 		notification.style.transition = "opacity 0.3s";
 		setTimeout(() => document.body.removeChild(notification), 300);
 	}, 5000);
+}
+
+function showChromeNotification(title, message) {
+	if (!("Notification" in window)) {
+		console.log("[showChromeNotification] 이 브라우저는 데스크톱 알림을 지원하지 않습니다");
+		return;
+	}
+	
+	if (Notification.permission === "granted") {
+		const notification = new Notification(title, {
+			body: message,
+			icon: "https://raw.githubusercontent.com/yeorinhieut/novel-dl/main/icon.png"
+		});
+		
+		// 5초 후 자동 종료
+		setTimeout(() => notification.close(), 5000);
+	} 
+	else if (Notification.permission !== "denied") {
+		Notification.requestPermission().then(permission => {
+			if (permission === "granted") {
+				const notification = new Notification(title, {
+					body: message,
+					icon: "https://raw.githubusercontent.com/yeorinhieut/novel-dl/main/icon.png"
+				});
+				
+				// 5초 후 자동 종료
+				setTimeout(() => notification.close(), 5000);
+			}
+		});
+	}
 }
 
 function extractTitle() {
