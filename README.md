@@ -1,7 +1,8 @@
 
 # novel-dl
 
-browser-based novel downloader for 📖🐰 (stable)
+browser-based novel downloader for 📖🐰 (작동불가)
+## 작동 불가 확인되어 새로운 버전을 개발중에 있습니다.
   
 [![Hits](https://hits.sh/github.com/yeorinhieut/novel-dl.svg)](https://hits.sh/github.com/yeorinhieut/novel-dl/)
   
