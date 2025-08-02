@@ -5,7 +5,7 @@
 
 [![Hits](https://hits.sh/github.com/yeorinhieut/novel-dl.svg)](https://hits.sh/github.com/yeorinhieut/novel-dl/)
 
-**기존 북마크/콘솔 스크립트는 더 이상 지원되지 않으니, 아래의 확장 프로그램 설치 방법을 이용해 주세요.**
+**기존 북마크/콘솔 스크립트는 더 이상 지원되지 않습니다. 아래의 확장 프로그램 설치 방법을 이용해 주세요.**
 
 ## 설치 (크롬 브라우저 권장)
 
