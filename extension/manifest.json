@@ -1,0 +1,37 @@
+{
+  "manifest_version": 3,
+  "name": "Novel DL",
+  "description": "Download novels from Booktoki sites directly as text or ZIP.",
+  "version": "0.1.0",
+  "action": {
+    "default_title": "Novel DL"
+  },
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "downloads",
+    "tabs",
+    "webNavigation"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "host_permissions": [
+    "https://*/*",
+    "http://*/*",
+    "https://raw.githubusercontent.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://*/*", "http://*/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["novel-dl.js"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+} 
