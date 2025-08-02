@@ -115,7 +115,7 @@ async function collectLinksFromPage(url) {
     },
     args: [LIST_SELECTORS],
   });
-  chrome.tabs.remove(tabId);
+  await removeTab(tabId);
   return result || [];
 }
 
@@ -147,7 +147,7 @@ async function extractEpisode(url, delay, tabId) {
   // Handle captcha
   if (!result || !result.content) {
     console.warn("[Novel-DL] Captcha or empty content detected at", url);
-    await chrome.tabs.update(tempTabId, { active: true });
+    await updateTab(tempTabId, { active: true });
     safeSend(tabId, {action:"taskUpdate", task:{status:"captcha", url}});
 
     await new Promise(resolve => {
@@ -170,20 +170,31 @@ async function extractEpisode(url, delay, tabId) {
 
     if(!result || !result.content){
       console.error("[Novel-DL] Failed to extract content after captcha, skipping.");
-      chrome.tabs.remove(tempTabId);
+      await removeTab(tempTabId);
       return null;
     }
   }
 
   await sleep(delay);
-  chrome.tabs.remove(tempTabId);
+  await removeTab(tempTabId);
   return result;
 }
 
-function createTab(url) {
-  return new Promise((res) => {
-    chrome.tabs.create({ url, active: false }, (tab) => res(tab.id));
-  });
+function createTab(url, retries = 5) {
+  return new Promise((res, reject) => {
+    chrome.tabs.create({ url, active: false }, (tab) => {
+        if (chrome.runtime.lastError) {
+            if (retries > 0) {
+                console.warn(`[Novel-DL] Tab creation failed, retrying... (${retries})`, chrome.runtime.lastError.message);
+                setTimeout(() => res(createTab(url, retries - 1)), 300);
+            } else {
+                reject(new Error("Failed to create tab after multiple retries."));
+            }
+        } else {
+            res(tab.id);
+        }
+     });
+   });
 }
 
 function waitForComplete(tabId) {
@@ -213,6 +224,43 @@ function sanitize(name) {
 
 function documentTitle(results) {
   return results.length ? sanitize(results[0].title.split(" ")[0]) : "novel";
+}
+
+// Add robust tab operation helpers
+function removeTab(tabId, retries = 5) {
+    return new Promise((resolve) => {
+        chrome.tabs.remove(tabId, () => {
+            if (chrome.runtime.lastError) {
+                if (retries > 0) {
+                    console.warn(`[Novel-DL] Tab removal failed, retrying... (${retries})`, chrome.runtime.lastError.message);
+                    setTimeout(() => resolve(removeTab(tabId, retries - 1)), 300);
+                } else {
+                    console.error("Failed to remove tab after multiple retries.");
+                    resolve(); // Continue anyway
+                }
+            } else {
+                resolve();
+            }
+        });
+    });
+}
+
+function updateTab(tabId, options, retries = 5) {
+    return new Promise((resolve) => {
+        chrome.tabs.update(tabId, options, () => {
+            if (chrome.runtime.lastError) {
+                if (retries > 0) {
+                    console.warn(`[Novel-DL] Tab update failed, retrying... (${retries})`, chrome.runtime.lastError.message);
+                    setTimeout(() => resolve(updateTab(tabId, options, retries - 1)), 300);
+                } else {
+                    console.error("Failed to update tab after multiple retries.");
+                    resolve(); // Continue anyway
+                }
+            } else {
+                resolve();
+            }
+        });
+    });
 }
 
 // no longer used in service worker 
