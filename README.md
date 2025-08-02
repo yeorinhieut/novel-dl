@@ -5,19 +5,20 @@
 
 [![Hits](https://hits.sh/github.com/yeorinhieut/novel-dl.svg)](https://hits.sh/github.com/yeorinhieut/novel-dl/)
 
-## 소개
-
-기존 북마크 방식의 `novel-dl`이 사이트의 보안 정책으로 인해 작동하지 않아, 크롬 확장 프로그램 방식으로 재개발하고 있습니다. 이 확장 프로그램을 통해 북토끼 소설을 다운로드할 수 있습니다.
-
 **기존 북마크/콘솔 스크립트는 더 이상 지원되지 않으니, 아래의 확장 프로그램 설치 방법을 이용해 주세요.**
 
 ## 설치 (크롬 브라우저 권장)
 
 ### 1. 확장 프로그램 파일 다운로드
-- 이 저장소의 최신 `extension.zip` 파일을 다운로드하거나, `deploy.sh`를 실행해 직접 압축 파일을 생성합니다.
-  - `git clone https://github.com/yeorinhieut/novel-dl.git`
-  - `cd novel-dl`
-  - `sh deploy.sh`
+- 아래 `extension.zip` 파일을 다운로드하세요.
+- **[Download extension.zip](https://raw.githubusercontent.com/yeorinhieut/novel-dl/main/extension.zip)**
+
+  *또는, 이 저장소를 클론하여 직접 빌드할 수도 있습니다:*
+  ```bash
+  git clone https://github.com/yeorinhieut/novel-dl.git
+  cd novel-dl
+  sh deploy.sh
+  ```
 
 ### 2. 개발자 모드 활성화
 - 크롬 브라우저에서 주소창에 `chrome://extensions`를 입력하여 확장 프로그램 관리 페이지로 이동합니다.
@@ -25,8 +26,7 @@
 
 ### 3. 확장 프로그램 로드
 - **'압축해제된 확장 프로그램을 로드합니다'** 버튼을 클릭합니다.
-- `extension` 폴더를 선택하여 로드합니다. (또는 `extension.zip`의 압축을 해제한 폴더)
-- `novel-dl` 카드가 보이면 설치가 완료된 것입니다.
+- `extension.zip`의 압축을 해제한 폴더를 선택하여 로드합니다.
 
 ## 사용법
 1. 다운로드할 소설의 회차 목록 페이지로 이동합니다.

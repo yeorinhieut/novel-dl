@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "Novel DL",
-  "description": "Download novels from Booktoki sites directly as text or ZIP.",
+  "name": "novel-dl",
+  "description": "novel-dl extension for booktoki",
   "version": "0.1.0",
   "action": {
     "default_title": "Novel DL"
